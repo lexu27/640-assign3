@@ -2,6 +2,8 @@ package edu.wisc.cs.sdn.vnet.rt;
 
 import net.floodlightcontroller.packet.IPv4;
 import edu.wisc.cs.sdn.vnet.Iface;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * An entry in a route table.
@@ -23,6 +25,30 @@ public class RouteEntry {
 	 * the destination or gateway
 	 */
 	private Iface iface;
+
+	/* Hold the metric for the distance vector */
+	private int metric;
+
+	private Timer timer = new Timer();
+	private RouteTable routeTable; // Need this in order to remove from route table holding this entry
+
+	/**
+	 * Create a new route table entry.
+	 * 
+	 * @param destinationAddress destination IP address
+	 * @param gatewayAddress     gateway IP address
+	 * @param maskAddress        subnet mask
+	 * @param iface              the router interface out which packets should
+	 *                           be sent to reach the destination or gateway
+	 */
+	public RouteEntry(int destinationAddress, int gatewayAddress,
+			int maskAddress, Iface iface, int metric) {
+		this.destinationAddress = destinationAddress;
+		this.gatewayAddress = gatewayAddress;
+		this.maskAddress = maskAddress;
+		this.iface = iface;
+		this.metric = metric;
+	}
 
 	/**
 	 * Create a new route table entry.
@@ -60,6 +86,28 @@ public class RouteEntry {
 	}
 
 	/**
+	 * Literally just set the metric for the route entry
+	 */
+	public int getMetric() {
+		return this.metric;
+	}
+
+	public void setTable(RouteTable routeTable) {
+		this.routeTable = routeTable;
+	}
+
+	public RouteTable getTable() {
+		return this.routeTable;
+	}
+
+	/**
+	 * Literally just set the metric for the route entry
+	 */
+	public void setMetric(int metric) {
+		this.metric = metric;
+	}
+
+	/**
 	 * @return subnet mask
 	 */
 	public int getMaskAddress() {
@@ -76,6 +124,17 @@ public class RouteEntry {
 
 	public void setInterface(Iface iface) {
 		this.iface = iface;
+	}
+
+	public void refresh() {
+		this.timer.cancel();
+		this.timer.purge();
+		this.timer.schedule(new TimerTask() { // Every 30 seconds try try to delete
+			@Override
+			public void run() {
+				routeTable.remove(destinationAddress, gatewayAddress);
+			}
+		}, (long) 30000);
 	}
 
 	public String toString() {
