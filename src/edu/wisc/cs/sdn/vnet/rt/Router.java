@@ -195,6 +195,7 @@ public class Router extends Device {
 		for (Iface iface : this.getInterfaces().values()) {
 			int mask = iface.getSubnetMask();
 			routeTable.insert(iface.getIpAddress() & mask, 0, mask, iface, 1);
+			System.out.println("Adding to current route table");
 		}
 		System.out.println("-------------- FIRST ROUTE TABLE -------------- ");
 		System.out.println(this.routeTable);
