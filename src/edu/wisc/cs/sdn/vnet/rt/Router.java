@@ -215,7 +215,6 @@ public class Router extends Device {
 	}
 
 	private void updateTable(RIPv2 ripPacket, Iface inIface, int ripSenderIp) { // Handles RIP responses. No need to
-																				// send?
 		for (RIPv2Entry entry : ripPacket.getEntries()) {
 			int new_metric = entry.getMetric() + 1;
 			entry.setMetric(new_metric); // Add one now to include path through us
@@ -231,9 +230,13 @@ public class Router extends Device {
 						new_metric);
 				continue;
 			}
-			if (match.getMetric() > new_metric) {
+			if (match.getMetric() > new_metric && match.getGatewayAddress() != 0) { // Make sure it's not a gateway
 				routeTable.update(entry.getAddress(), next_hop, entry.getNextHopAddress(), inIface,
 						new_metric);
+			}
+
+			if (match.getGatewayAddress() != 0) { // Count this as a refresh
+				match.refresh();
 			}
 		}
 	}
