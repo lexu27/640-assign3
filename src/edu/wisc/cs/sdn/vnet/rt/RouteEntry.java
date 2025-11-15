@@ -136,15 +136,17 @@ public class RouteEntry {
 			@Override
 			public void run() {
 				routeTable.remove(destinationAddress, maskAddress);
+				System.out.println("30 SECONDS PASSED! Removing stale RIP entries.");
 			}
 		}, (long) 30000);
 	}
 
 	public String toString() {
-		return String.format("%s \t%s \t%s \t%s",
+		return String.format("%s \t%s \t%s \t%s \t%d",
 				IPv4.fromIPv4Address(this.destinationAddress),
 				IPv4.fromIPv4Address(this.gatewayAddress),
 				IPv4.fromIPv4Address(this.maskAddress),
+				this.metric,
 				this.iface.getName());
 	}
 }

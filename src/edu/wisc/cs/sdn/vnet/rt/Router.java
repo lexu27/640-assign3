@@ -193,13 +193,18 @@ public class Router extends Device {
 		// TODO: Review (basically setting up all the immediate neighbors)
 		for (Iface iface : this.getInterfaces().values()) {
 			int mask = iface.getSubnetMask();
-			routeTable.insert(iface.getIpAddress() & mask, 0, mask, iface, 1);
+			routeTable.insert(iface.getIpAddress() & mask, 0, mask, iface);
 		}
-
+		System.out.println("-------------- FIRST ROUTE TABLE -------------- ");
+		System.out.println(this.routeTable);
 		broadcast(RIPv2.COMMAND_REQUEST);
+
+		System.out.println("-------------- ROUTE TABLE AFTER INITIAL BROADCAST REQUEST -------------- ");
+		System.out.println(this.routeTable);
 		timer.scheduleAtFixedRate(new TimerTask() { // This will periodically send unsolicited response out
 			@Override
 			public void run() {
+				System.out.println("10 SECOND UNSOLICITED BROADCAST!");
 				broadcast(RIPv2.COMMAND_RESPONSE);
 			}
 		}, 10000, 10000);
@@ -241,6 +246,8 @@ public class Router extends Device {
 
 		} else if (ripPacket.getCommand() == RIPv2.COMMAND_RESPONSE) { // Recieved a RIP response & update table
 			updateTable(ripPacket, inIface);
+			System.out.println("-------------- NEW ROUTE TABLE AFTER RESPONSE RECIEVED -------------- ");
+			System.out.println(this.routeTable);
 		} else {
 			System.err.println("Invalid RIP command detected.");
 			System.exit(1);
