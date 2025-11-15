@@ -194,7 +194,7 @@ public class Router extends Device {
 		// TODO: Review (basically setting up all the immediate neighbors)
 		for (Iface iface : this.getInterfaces().values()) {
 			int mask = iface.getSubnetMask();
-			routeTable.insert(iface.getIpAddress() & mask, 0, mask, iface);
+			routeTable.insert(iface.getIpAddress() & mask, 0, mask, iface, 1);
 		}
 		System.out.println("-------------- FIRST ROUTE TABLE -------------- ");
 		System.out.println(this.routeTable);
