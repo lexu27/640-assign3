@@ -207,7 +207,8 @@ public class Router extends Device {
 		timer.scheduleAtFixedRate(new TimerTask() { // This will periodically send unsolicited response out
 			@Override
 			public void run() {
-				System.out.println("10 SECOND UNSOLICITED BROADCAST!");
+				System.out.println("------- 10 SECOND UNSOLICITED BROADCAST! SENT BELOW: ----- ");
+				System.out.println(routeTable);
 				broadcast(RIPv2.COMMAND_RESPONSE);
 			}
 		}, 10000, 10000);

@@ -137,6 +137,8 @@ public class RouteEntry {
 			public void run() {
 				routeTable.remove(destinationAddress, maskAddress);
 				System.out.println("30 SECONDS PASSED! Removing stale RIP entries.");
+				System.out.println("---------- ROUTE TABLE AFTER 30 SECOND CLEANUP ---------");
+				System.out.println(routeTable);
 			}
 		}, (long) 30000);
 	}

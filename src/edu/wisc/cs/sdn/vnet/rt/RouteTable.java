@@ -260,6 +260,7 @@ public class RouteTable {
 			entry.setGatewayAddress(gwIp);
 			entry.setInterface(iface);
 			entry.setMetric(metric);
+			entry.refresh();
 		}
 		return true;
 	}
