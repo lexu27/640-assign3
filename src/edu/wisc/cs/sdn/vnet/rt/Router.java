@@ -214,20 +214,25 @@ public class Router extends Device {
 		}, 10000, 10000);
 	}
 
-	private void updateTable(RIPv2 ripPacket, Iface inIface) { // Handles RIP responses. No need to send?
+	private void updateTable(RIPv2 ripPacket, Iface inIface, int ripSenderIp) { // Handles RIP responses. No need to
+																				// send?
 		for (RIPv2Entry entry : ripPacket.getEntries()) {
 			int new_metric = entry.getMetric() + 1;
 			entry.setMetric(new_metric); // Add one now to include path through us
 
 			// Compare each ripentry to RouteTable
 			RouteEntry match = routeTable.find(entry.getAddress(), entry.getSubnetMask());
+			int next_hop = entry.getNextHopAddress();
+			if (next_hop == 0)
+				next_hop = ripSenderIp;
+
 			if (match == null) { // Then we need to add this to our route table
-				routeTable.insert(entry.getAddress(), entry.getNextHopAddress(), entry.getSubnetMask(), inIface,
+				routeTable.insert(entry.getAddress(), next_hop, entry.getSubnetMask(), inIface,
 						new_metric);
 				continue;
 			}
 			if (match.getMetric() > new_metric) {
-				routeTable.update(entry.getAddress(), entry.getSubnetMask(), entry.getNextHopAddress(), inIface,
+				routeTable.update(entry.getAddress(), next_hop, entry.getNextHopAddress(), inIface,
 						new_metric);
 			}
 		}
@@ -249,7 +254,7 @@ public class Router extends Device {
 			sendRipPacket(ipPacket.getSourceAddress(), etherPacket.getSourceMAC(), RIPv2.COMMAND_RESPONSE, inIface);
 
 		} else if (ripPacket.getCommand() == RIPv2.COMMAND_RESPONSE) { // Recieved a RIP response & update table
-			updateTable(ripPacket, inIface);
+			updateTable(ripPacket, inIface, ipPacket.getSourceAddress());
 			System.out.println("-------------- NEW ROUTE TABLE AFTER RESPONSE RECIEVED -------------- ");
 			System.out.println(this.routeTable);
 		} else {
