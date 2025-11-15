@@ -192,6 +192,7 @@ public class Router extends Device {
 
 	public void startRip() {
 		// TODO: Review (basically setting up all the immediate neighbors)
+		System.out.println("Router inferfaces are : " + this.getInterfaces().values());
 		for (Iface iface : this.getInterfaces().values()) {
 			int mask = iface.getSubnetMask();
 			routeTable.insert(iface.getIpAddress() & mask, 0, mask, iface, 1);
