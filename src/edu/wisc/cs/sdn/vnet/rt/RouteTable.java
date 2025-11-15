@@ -197,6 +197,7 @@ public class RouteTable {
 	public void insert(int dstIp, int gwIp, int maskIp, Iface iface) {
 		RouteEntry entry = new RouteEntry(dstIp, gwIp, maskIp, iface);
 		synchronized (this.entries) {
+			entry.setTable(this);
 			this.entries.add(entry);
 		}
 	}
@@ -270,7 +271,7 @@ public class RouteTable {
 	 * @param maskIp subnet mask of the entry to find
 	 * @return a matching entry if one was found, otherwise null
 	 */
-	private RouteEntry find(int dstIp, int maskIp) {
+	public RouteEntry find(int dstIp, int maskIp) {
 		synchronized (this.entries) {
 			for (RouteEntry entry : this.entries) {
 				if ((entry.getDestinationAddress() == dstIp)

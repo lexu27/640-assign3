@@ -29,7 +29,7 @@ public class RouteEntry {
 	/* Hold the metric for the distance vector */
 	private int metric;
 
-	private Timer timer = new Timer();
+	private Timer timer;
 	private RouteTable routeTable; // Need this in order to remove from route table holding this entry
 
 	/**
@@ -127,12 +127,15 @@ public class RouteEntry {
 	}
 
 	public void refresh() {
-		this.timer.cancel();
-		this.timer.purge();
-		this.timer.schedule(new TimerTask() { // Every 30 seconds try try to delete
+		if (timer != null) {
+			this.timer.cancel();
+			this.timer.purge();
+		}
+		timer = new Timer();
+		this.timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				routeTable.remove(destinationAddress, gatewayAddress);
+				routeTable.remove(destinationAddress, maskAddress);
 			}
 		}, (long) 30000);
 	}
