@@ -127,6 +127,7 @@ public class Router extends Device {
 		ipPacket.setSourceAddress(outIface.getIpAddress());
 		ipPacket.setDestinationAddress(destIP);
 		ipPacket.setProtocol(IPv4.PROTOCOL_UDP);
+		ipPacket.setTtl((byte) 2);
 
 		udpPacket.setSourcePort((short) RIP_PORT);
 		udpPacket.setDestinationPort((short) RIP_PORT);
