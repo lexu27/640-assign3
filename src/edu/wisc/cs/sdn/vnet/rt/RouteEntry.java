@@ -146,7 +146,7 @@ public class RouteEntry {
 				IPv4.fromIPv4Address(this.destinationAddress),
 				IPv4.fromIPv4Address(this.gatewayAddress),
 				IPv4.fromIPv4Address(this.maskAddress),
-				this.metric,
-				this.iface.getName());
+				this.iface.getName(),
+				this.metric);
 	}
 }
