@@ -228,19 +228,19 @@ public class Router extends Device {
 						new_metric);
 				continue;
 			}
+
+			// Need to reupdate the entry whenever the Rip entry comes from the same person
+			// who set the route table entry
+			if (match.getInterface() == inIface) {
+				routeTable.update(entry.getAddress(), entry.getSubnetMask(), next_hop, inIface,
+						new_metric);
+				continue;
+			}
 			if (match.getMetric() > new_metric && match.getGatewayAddress() != 0) { // If my current metric is less.
 																					// Take either way
 				routeTable.update(entry.getAddress(), entry.getSubnetMask(), next_hop, inIface,
 						new_metric);
 				continue;
-			}
-
-			if (ripSenderIp == match.getGatewayAddress() && match.getInterface() == inIface) { // Update anyways even if
-																								// worse if the rip
-																								// packet came from the
-																								// original entry.
-				routeTable.update(entry.getAddress(), entry.getSubnetMask(), next_hop, inIface,
-						new_metric);
 			}
 
 		}
