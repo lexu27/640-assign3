@@ -146,10 +146,12 @@ public class Router extends Device {
 				ripEntry.setNextHopAddress(entry.getGatewayAddress());
 				ripPacket.addEntry(ripEntry);
 			}
-		} else {
-			RIPv2Entry dummy = new RIPv2Entry(0, 0, 16); // unreachable default route
-			dummy.setNextHopAddress(0);
-			ripPacket.addEntry(dummy);
+
+			if (ripPacket.getEntries().isEmpty()) {
+				RIPv2Entry dummy = new RIPv2Entry(0, 0, 16); // fill with a dummy to avoid errors
+				dummy.setNextHopAddress(0);
+				ripPacket.addEntry(dummy);
+			}
 		}
 
 		sendPacket(etherPacket, outIface);
