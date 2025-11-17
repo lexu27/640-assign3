@@ -221,9 +221,7 @@ public class Router extends Device {
 
 			// Compare each ripentry to RouteTable
 			RouteEntry match = routeTable.find(entry.getAddress(), entry.getSubnetMask());
-			int next_hop = entry.getNextHopAddress();
-			if (next_hop == 0)
-				next_hop = ripSenderIp;
+			int next_hop = (entry.getNextHopAddress() == 0) ? ripSenderIp : entry.getNextHopAddress();
 
 			if (match == null) { // Then we need to add this to our route table
 				routeTable.insert(entry.getAddress(), next_hop, entry.getSubnetMask(), inIface,
@@ -233,11 +231,16 @@ public class Router extends Device {
 			if (match.getMetric() > new_metric && match.getGatewayAddress() != 0) { // Make sure it's not a gateway
 				routeTable.update(entry.getAddress(), entry.getSubnetMask(), entry.getNextHopAddress(), inIface,
 						new_metric);
+				continue;
 			}
 
-			if (match.getGatewayAddress() != 0) { // Count this as a refresh
-				match.refresh();
+			if (ripSenderIp == match.getGatewayAddress() && match.getInterface() == inIface) { // Update anyways even if
+																								// worse. Say link
+																								// dies...
+				routeTable.update(entry.getAddress(), entry.getSubnetMask(), entry.getNextHopAddress(), inIface,
+						new_metric);
 			}
+
 		}
 	}
 
