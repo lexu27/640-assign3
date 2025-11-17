@@ -221,7 +221,6 @@ public class Router extends Device {
 			}
 
 			int new_metric = entry.getMetric() + 1;
-			entry.setMetric(new_metric); // Add one now to include path through us
 
 			int dest = entry.getAddress();
 			int mask = entry.getSubnetMask();
