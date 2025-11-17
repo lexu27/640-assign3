@@ -195,7 +195,7 @@ public class Router extends Device {
 		System.out.println("Router inferfaces are : " + this.getInterfaces().values());
 		for (Iface iface : this.getInterfaces().values()) {
 			int mask = iface.getSubnetMask();
-			routeTable.insert(iface.getIpAddress() & mask, 0, mask, iface, 1);
+			routeTable.insert(iface.getIpAddress() & mask, 0, mask, iface, 0);
 			System.out.println("Adding to current route table");
 		}
 		System.out.println("-------------- FIRST ROUTE TABLE -------------- ");
@@ -219,33 +219,25 @@ public class Router extends Device {
 			if (entry.getMetric() >= 16) {
 				continue;
 			}
-
 			int new_metric = entry.getMetric() + 1;
 
-			int dest = entry.getAddress();
-			int mask = entry.getSubnetMask();
-
-			// Compare each ripentry to RouteTable
 			RouteEntry match = routeTable.find(entry.getAddress(), entry.getSubnetMask());
 			int next_hop = (entry.getNextHopAddress() == 0) ? ripSenderIp : entry.getNextHopAddress();
 
 			if (match == null) { // Then we need to add this to our route table
-				routeTable.insert(dest, next_hop, mask, inIface,
+				routeTable.insert(entry.getAddress(), next_hop, entry.getSubnetMask(), inIface,
+						new_metric);
+				continue;
+			}
+			if (match.getMetric() > new_metric && match.getGatewayAddress() != 0) { // If my current metric is less.
+				routeTable.update(entry.getAddress(), entry.getSubnetMask(), next_hop, inIface,
 						new_metric);
 				continue;
 			}
 
-			if (match.getGatewayAddress() == 0) {
-				continue;
-			}
-
-			if (match.getGatewayAddress() == next_hop) {
-				routeTable.update(dest, mask, next_hop, inIface, new_metric);
-				continue;
-			}
-
-			if (match.getMetric() > new_metric) { // If my current metric is less.
-				routeTable.update(dest, mask, next_hop, inIface, new_metric);
+			if (ripSenderIp == match.getGatewayAddress() && match.getInterface() == inIface) {
+				routeTable.update(entry.getAddress(), entry.getSubnetMask(), next_hop, inIface,
+						new_metric);
 			}
 
 		}
