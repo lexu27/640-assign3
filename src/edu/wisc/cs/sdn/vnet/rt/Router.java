@@ -229,25 +229,15 @@ public class Router extends Device {
 				routeTable.insert(entry.getAddress(), next_hop, entry.getSubnetMask(), inIface,
 						new_metric);
 				continue;
-			} else if (match.getGatewayAddress() != 0) {
-				if (new_metric < match.getMetric() || match.getGatewayAddress() == next_hop) {
-					routeTable.update(entry.getAddress(), entry.getSubnetMask(), entry.getNextHopAddress(), inIface,
-							new_metric);
-				}
-				match.refresh();
-
+			}
+			if (match.getMetric() > new_metric && match.getGatewayAddress() != 0) { // Make sure it's not a gateway
+				routeTable.update(entry.getAddress(), entry.getSubnetMask(), entry.getNextHopAddress(), inIface,
+						new_metric);
 			}
 
-			// if (match.getMetric() > new_metric && match.getGatewayAddress() != 0) { //
-			// Make sure it's not a gateway
-			// routeTable.update(entry.getAddress(), entry.getSubnetMask(),
-			// entry.getNextHopAddress(), inIface,
-			// new_metric);
-			// }
-
-			// if (match.getGatewayAddress() != 0) { // Count this as a refresh
-			// match.refresh();
-			// }
+			if (match.getGatewayAddress() != 0) { // Count this as a refresh
+				match.refresh();
+			}
 		}
 	}
 
