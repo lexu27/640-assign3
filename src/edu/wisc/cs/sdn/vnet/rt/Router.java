@@ -128,9 +128,11 @@ public class Router extends Device {
 		ipPacket.setDestinationAddress(destIP);
 		ipPacket.setProtocol(IPv4.PROTOCOL_UDP);
 		ipPacket.setTtl((byte) 2);
+		ipPacket.serialize(); // Set length + checkum as well
 
 		udpPacket.setSourcePort((short) RIP_PORT);
 		udpPacket.setDestinationPort((short) RIP_PORT);
+		udpPacket.serialize(); // Set length + checksum
 
 		etherPacket.setPayload(ipPacket);
 		ipPacket.setPayload(udpPacket);
@@ -218,7 +220,7 @@ public class Router extends Device {
 		for (RIPv2Entry entry : ripPacket.getEntries()) {
 			int new_metric = Math.min(entry.getMetric() + 1, 16);
 
-			if (new_metric == 16) {
+			if (new_metric > 16) {
 				continue;
 			}
 
