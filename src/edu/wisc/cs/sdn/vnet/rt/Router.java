@@ -216,24 +216,37 @@ public class Router extends Device {
 
 	private void updateTable(RIPv2 ripPacket, Iface inIface, int ripSenderIp) { // Handles RIP responses. No need to
 		for (RIPv2Entry entry : ripPacket.getEntries()) {
+			if (entry.getMetric() >= 16) {
+				continue;
+			}
+
 			int new_metric = entry.getMetric() + 1;
 			entry.setMetric(new_metric); // Add one now to include path through us
+
+			int dest = entry.getAddress();
+			int mask = entry.getSubnetMask();
 
 			// Compare each ripentry to RouteTable
 			RouteEntry match = routeTable.find(entry.getAddress(), entry.getSubnetMask());
 			int next_hop = (entry.getNextHopAddress() == 0) ? ripSenderIp : entry.getNextHopAddress();
 
 			if (match == null) { // Then we need to add this to our route table
-				routeTable.insert(entry.getAddress(), next_hop, entry.getSubnetMask(), inIface,
+				routeTable.insert(dest, next_hop, mask, inIface,
 						new_metric);
 				continue;
 			}
 
-			if (match.getMetric() > new_metric && match.getGatewayAddress() != 0) { // If my current metric is less.
-																					// Take either way
-				routeTable.update(entry.getAddress(), entry.getSubnetMask(), next_hop, inIface,
-						new_metric);
+			if (match.getGatewayAddress() == 0) {
 				continue;
+			}
+
+			if (match.getGatewayAddress() == next_hop) {
+				routeTable.update(dest, mask, next_hop, inIface, new_metric);
+				continue;
+			}
+
+			if (match.getMetric() > new_metric) { // If my current metric is less.
+				routeTable.update(dest, mask, next_hop, inIface, new_metric);
 			}
 
 		}
