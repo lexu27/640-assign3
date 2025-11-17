@@ -195,7 +195,7 @@ public class Router extends Device {
 		System.out.println("Router inferfaces are : " + this.getInterfaces().values());
 		for (Iface iface : this.getInterfaces().values()) {
 			int mask = iface.getSubnetMask();
-			routeTable.insert(iface.getIpAddress() & mask, 0, mask, iface, 0);
+			routeTable.insert(iface.getIpAddress() & mask, 0, mask, iface, 1);
 			System.out.println("Adding to current route table");
 		}
 		System.out.println("-------------- FIRST ROUTE TABLE -------------- ");
@@ -216,10 +216,11 @@ public class Router extends Device {
 
 	private void updateTable(RIPv2 ripPacket, Iface inIface, int ripSenderIp) { // Handles RIP responses. No need to
 		for (RIPv2Entry entry : ripPacket.getEntries()) {
-			if (entry.getMetric() >= 16) {
+			int new_metric = Math.min(entry.getMetric() + 1, 16);
+
+			if (new_metric == 16) {
 				continue;
 			}
-			int new_metric = entry.getMetric() + 1;
 
 			RouteEntry match = routeTable.find(entry.getAddress(), entry.getSubnetMask());
 			int next_hop = (entry.getNextHopAddress() == 0) ? ripSenderIp : entry.getNextHopAddress();
@@ -235,7 +236,7 @@ public class Router extends Device {
 				continue;
 			}
 
-			if (ripSenderIp == match.getGatewayAddress() && match.getInterface() == inIface) {
+			if (next_hop == match.getGatewayAddress() && match.getInterface() == inIface) {
 				routeTable.update(entry.getAddress(), entry.getSubnetMask(), next_hop, inIface,
 						new_metric);
 			}
