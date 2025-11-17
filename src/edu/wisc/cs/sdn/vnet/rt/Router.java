@@ -128,11 +128,9 @@ public class Router extends Device {
 		ipPacket.setDestinationAddress(destIP);
 		ipPacket.setProtocol(IPv4.PROTOCOL_UDP);
 		ipPacket.setTtl((byte) 2);
-		ipPacket.serialize(); // Set length + checkum as well
 
 		udpPacket.setSourcePort((short) RIP_PORT);
 		udpPacket.setDestinationPort((short) RIP_PORT);
-		udpPacket.serialize(); // Set length + checksum
 
 		etherPacket.setPayload(ipPacket);
 		ipPacket.setPayload(udpPacket);
@@ -146,12 +144,12 @@ public class Router extends Device {
 				ripEntry.setNextHopAddress(entry.getGatewayAddress());
 				ripPacket.addEntry(ripEntry);
 			}
-
-			if (ripPacket.getEntries().isEmpty()) {
-				RIPv2Entry dummy = new RIPv2Entry(0, 0, 16); // fill with a dummy to avoid errors
-				dummy.setNextHopAddress(0);
-				ripPacket.addEntry(dummy);
-			}
+		}
+		if (routeTable.getEntries().isEmpty() || mode == RIPv2.COMMAND_REQUEST) { // Requst or empty route table (fill
+																					// for parsing)
+			RIPv2Entry dummy = new RIPv2Entry(0, 0, 16); // unreachable default route
+			dummy.setNextHopAddress(0);
+			ripPacket.addEntry(dummy);
 		}
 
 		sendPacket(etherPacket, outIface);
@@ -189,11 +187,10 @@ public class Router extends Device {
 
 	private void updateTable(RIPv2 ripPacket, Iface inIface, int ripSenderIp) { // Handles RIP responses. No need to
 		for (RIPv2Entry entry : ripPacket.getEntries()) {
-			int new_metric = Math.min(entry.getMetric() + 1, 16);
-
-			if (new_metric > 16) {
+			if (entry.getMetric() == 16) {
 				continue;
 			}
+			int new_metric = entry.getMetric() + 1;
 
 			RouteEntry match = routeTable.find(entry.getAddress(), entry.getSubnetMask());
 			int next_hop = (entry.getNextHopAddress() == 0) ? ripSenderIp : entry.getNextHopAddress();
