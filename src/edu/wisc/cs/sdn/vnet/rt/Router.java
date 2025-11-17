@@ -195,7 +195,7 @@ public class Router extends Device {
 		System.out.println("Router inferfaces are : " + this.getInterfaces().values());
 		for (Iface iface : this.getInterfaces().values()) {
 			int mask = iface.getSubnetMask();
-			routeTable.insert(iface.getIpAddress() & mask, 0, mask, iface, 0);
+			routeTable.insert(iface.getIpAddress() & mask, 0, mask, iface, 1);
 			System.out.println("Adding to current route table");
 		}
 		System.out.println("-------------- FIRST ROUTE TABLE -------------- ");
@@ -228,16 +228,18 @@ public class Router extends Device {
 						new_metric);
 				continue;
 			}
-			if (match.getMetric() > new_metric && match.getGatewayAddress() != 0) { // Make sure it's not a gateway
-				routeTable.update(entry.getAddress(), entry.getSubnetMask(), entry.getNextHopAddress(), inIface,
+			if (match.getMetric() > new_metric && match.getGatewayAddress() != 0) { // If my current metric is less.
+																					// Take either way
+				routeTable.update(entry.getAddress(), entry.getSubnetMask(), next_hop, inIface,
 						new_metric);
 				continue;
 			}
 
 			if (ripSenderIp == match.getGatewayAddress() && match.getInterface() == inIface) { // Update anyways even if
-																								// worse. Say link
-																								// dies...
-				routeTable.update(entry.getAddress(), entry.getSubnetMask(), entry.getNextHopAddress(), inIface,
+																								// worse if the rip
+																								// packet came from the
+																								// original entry.
+				routeTable.update(entry.getAddress(), entry.getSubnetMask(), next_hop, inIface,
 						new_metric);
 			}
 
