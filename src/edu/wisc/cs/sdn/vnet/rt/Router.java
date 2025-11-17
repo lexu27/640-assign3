@@ -26,7 +26,7 @@ public class Router extends Device {
 
 	private static int RIP_PORT = 520;
 
-	private static String RIP_MULTICAST_IP = "224.0.0.9";
+	private static int RIP_MULTICAST_IP = IPv4.toIPv4Address("224.0.0.9");
 	private static MACAddress RIP_BROADCAST_MAC;
 
 	private static byte[] broadcast_addr = new byte[6];
@@ -133,41 +133,6 @@ public class Router extends Device {
 		udpPacket.setSourcePort((short) RIP_PORT);
 		udpPacket.setDestinationPort((short) RIP_PORT);
 		udpPacket.serialize(); // Set length + checksum
-
-		etherPacket.setPayload(ipPacket);
-		ipPacket.setPayload(udpPacket);
-		udpPacket.setPayload(ripPacket);
-		ripPacket.setCommand(mode);
-
-		if (mode == RIPv2.COMMAND_RESPONSE) { // Make rip response
-			for (RouteEntry entry : routeTable.getEntries()) {
-				RIPv2Entry ripEntry = new RIPv2Entry(entry.getDestinationAddress(), entry.getMaskAddress(),
-						entry.getMetric());
-				ripEntry.setNextHopAddress(entry.getGatewayAddress());
-				ripPacket.addEntry(ripEntry);
-			}
-		}
-
-		sendPacket(etherPacket, outIface);
-	}
-
-	private void sendRipPacket(String destIP, MACAddress destMACAddress, byte mode, Iface outIface) {
-		// Create packet structure
-		Ethernet etherPacket = new Ethernet();
-		IPv4 ipPacket = new IPv4();
-		UDP udpPacket = new UDP();
-		RIPv2 ripPacket = new RIPv2();
-
-		etherPacket.setDestinationMACAddress(destMACAddress.toBytes());
-		etherPacket.setSourceMACAddress(outIface.getMacAddress().toBytes());
-		etherPacket.setEtherType(Ethernet.TYPE_IPv4);
-
-		ipPacket.setSourceAddress(outIface.getIpAddress());
-		ipPacket.setDestinationAddress(destIP);
-		ipPacket.setProtocol(IPv4.PROTOCOL_UDP);
-
-		udpPacket.setSourcePort((short) RIP_PORT);
-		udpPacket.setDestinationPort((short) RIP_PORT);
 
 		etherPacket.setPayload(ipPacket);
 		ipPacket.setPayload(udpPacket);
